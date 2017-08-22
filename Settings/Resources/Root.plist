@@ -50,12 +50,14 @@
 				<string>Boxed</string>
 				<string>Colored</string>
 				<string>Outlined</string>
+				<string>PuTTY</string>
 			</array>
 			<key>validValues</key>
 			<array>
 				<string>Boxed</string>
 				<string>Colored</string>
 				<string>Outlined</string>
+				<string>PuTTY</string>
 			</array>
 			<key>detail</key> 				<string>PSListItemsController</string>
 			<key>default</key> 				<string>Boxed</string>
