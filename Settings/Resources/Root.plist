@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>SSH Icon</string>
+	
+	<key>items</key>
+	<array>
+		
+		<!-- Enabled -->
+		<dict>
+			<key>cell</key> 				<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key> 				<string>PSSwitchCell</string>
+			<key>label</key> 				<string>Enabled</string>
+			<key>key</key> 					<string>Enabled</string>
+			<key>default</key> 				<true/>
+			<key>defaults</key> 			<string>com.sticktron.sshicon</string>
+			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
+		</dict>
+		
+		<!-- Alignment -->
+		<dict>
+			<key>cell</key> 				<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key> 				<string>PSSegmentCell</string>
+			<key>label</key> 				<string>Alignment</string>
+			<key>key</key> 					<string>Alignment</string>
+			<key>validTitles</key> 			<array><string>Left</string><string>Right</string></array>
+			<key>validValues</key> 			<array><string>Left</string><string>Right</string></array>
+			<key>staticTextMessage</key> 	<string>For finer-grained alignment try Moveable9 and its libstatusbar spacers.</string>
+			<key>default</key> 				<string>Right</string>
+			<key>defaults</key> 			<string>com.sticktron.sshicon</string>
+			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
+		</dict>
+		
+		<!-- IconStyle -->
+		<dict>
+			<key>cell</key> 				<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key> 				<string>PSLinkListCell</string>
+			<key>label</key> 				<string>Icon style</string>
+			<key>key</key> 					<string>IconStyle</string>
+			<key>validTitles</key>
+			<array>
+				<string>Boxed</string>
+				<string>Colored</string>
+				<string>Outlined</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>Boxed</string>
+				<string>Colored</string>
+				<string>Outlined</string>
+			</array>
+			<key>detail</key> 				<string>PSListItemsController</string>
+			<key>default</key> 				<string>Boxed</string>
+			<key>defaults</key> 			<string>com.sticktron.sshicon</string>
+			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
+		</dict>
+		
+		<!-- Respring -->
+		<dict>
+			<key>cell</key> 				<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Apply Settings</string>
+			<key>action</key>
+			<string>respring</string>
+			<key>alignment</key>
+			<string>3</string>
+		</dict>
+		
+		<!-- Credits -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Created by @Sticktron
+
+(c) 2017
+
+😈
+</string>
+			<key>footerAlignment</key>
+			<string>1</string>
+		</dict>
+		
+	</array>
+	
+</dict>
+</plist>
