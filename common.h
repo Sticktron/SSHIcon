@@ -9,5 +9,11 @@
 #define LOG_LINE()			HBLogDebug(@"----------------------------------------")
 #define LOG_SPACE()			HBLogDebug(@" ")
 
-#define kPrefsAppID 					CFSTR("com.sticktron.sshicon")
 #define kPrefsChangedNotification       CFSTR("com.sticktron.sshicon.settingschanged")
+
+static NSString *const kPrefsPlistPath = @"/var/mobile/Library/Preferences/com.sticktron.sshicon.plist";
+static NSString *const kIconStylesPath = @"/Library/SSHIcon";
+
+@interface UIImage (SSHIcon)
+- (id)_flatImageWithColor:(id)arg1;
+@end

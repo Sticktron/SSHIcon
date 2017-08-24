@@ -1,10 +1,18 @@
 Package: com.sticktron.sshicon
-Name: SSH Icon Beta (iOS 10)
-Depends: firmware (>= 10.0), mobilesubstrate, preferenceloader
-Version: 0.9.2
+Name: SSH Icon Beta (iOS 9-10)
+Depends: firmware (>= 9.0), mobilesubstrate, preferenceloader, org.thebigboss.libstatus9
+Version: 0.9.3
 Architecture: iphoneos-arm
 Description: A statusbar icon for SSH connections.
  [ChangeLog]
+ 0.9.3
+ - added rounded SSH icon
+ - added icon previews to settings
+ - change the icon without respringing
+ - choose update interval setting
+ - fixed missing libstatusbar dependency
+ - added tap recognizer to icon
+ _____
  0.9.2
  - added PuTTY icon
  _____

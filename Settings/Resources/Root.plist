@@ -11,6 +11,7 @@
 		<!-- Enabled -->
 		<dict>
 			<key>cell</key> 				<string>PSGroupCell</string>
+			<key>footerText</key> 			<string>*Requires a respring to take effect.</string>
 		</dict>
 		<dict>
 			<key>cell</key> 				<string>PSSwitchCell</string>
@@ -23,15 +24,23 @@
 		
 		<!-- Alignment -->
 		<dict>
-			<key>cell</key> 				<string>PSGroupCell</string>
+			<key>cell</key>			 		<string>PSGroupCell</string>
+			<key>label</key>				<string>Location</string>
+			<key>footerText</key> 			<string>*Requires a respring to take effect.</string>
 		</dict>
 		<dict>
 			<key>cell</key> 				<string>PSSegmentCell</string>
-			<key>label</key> 				<string>Alignment</string>
 			<key>key</key> 					<string>Alignment</string>
-			<key>validTitles</key> 			<array><string>Left</string><string>Right</string></array>
-			<key>validValues</key> 			<array><string>Left</string><string>Right</string></array>
-			<key>staticTextMessage</key> 	<string>For finer-grained alignment try Moveable9 and its libstatusbar spacers.</string>
+			<key>validTitles</key>
+			<array>
+				<string>Left Side</string>
+				<string>Right Side</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>Left</string>
+				<string>Right</string>
+			</array>
 			<key>default</key> 				<string>Right</string>
 			<key>defaults</key> 			<string>com.sticktron.sshicon</string>
 			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
@@ -42,15 +51,24 @@
 			<key>cell</key> 				<string>PSGroupCell</string>
 		</dict>
 		<dict>
+			<key>cell</key> 				<string>PSGroupCell</string>
+		</dict>
+		<dict>
 			<key>cell</key> 				<string>PSLinkListCell</string>
-			<key>label</key> 				<string>Icon style</string>
+			<key>detail</key> 				<string>PSListItemsController</string>
+			<key>label</key> 				<string>Icon Style</string>
 			<key>key</key> 					<string>IconStyle</string>
-			<key>validTitles</key>
+			<key>id</key> 					<string>IconStyle</string>
+			<key>titlesDataSource</key> 	<string>iconStyleNames:</string>
+			<key>valuesDataSource</key> 	<string>iconStyleNames:</string>
+			
+			<!-- <key>validTitles</key>
 			<array>
 				<string>Boxed</string>
 				<string>Colored</string>
 				<string>Outlined</string>
 				<string>PuTTY</string>
+				<string>Mac</string>
 			</array>
 			<key>validValues</key>
 			<array>
@@ -58,11 +76,52 @@
 				<string>Colored</string>
 				<string>Outlined</string>
 				<string>PuTTY</string>
-			</array>
-			<key>detail</key> 				<string>PSListItemsController</string>
+				<string>Mac</string>
+			</array> -->
 			<key>default</key> 				<string>Boxed</string>
 			<key>defaults</key> 			<string>com.sticktron.sshicon</string>
 			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
+		</dict>
+		
+		<!-- Update Interval -->
+		<dict>
+			<key>cell</key> 				<string>PSGroupCell</string>
+			<key>footerText</key> 			<string>Adjust how often the tweak checks for connections.</string>
+		</dict>
+		<dict>
+			<key>cell</key> 				<string>PSSegmentCell</string>
+			<key>key</key> 					<string>UpdateInterval</string>
+			<key>validTitles</key>
+			<array>
+				<string>2s</string>
+				<string>5s</string>
+				<string>10s</string>
+				<string>15s</string>
+				<string>30s</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>2</integer>
+				<integer>5</integer>
+				<integer>10</integer>
+				<integer>15</integer>
+				<integer>30</integer>
+			</array>
+			<key>default</key> 				<integer>5</integer>
+			<key>defaults</key> 			<string>com.sticktron.sshicon</string>
+			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
+		</dict>
+				
+		
+		<!-- Report an Issue -->
+		<dict>
+			<key>cell</key> 				<string>PSGroupCell</string>
+			<key>footerText</key> 			<string>File a bug report, feature request or suggestion.</string>
+		</dict>
+		<dict>
+			<key>cell</key> 				<string>PSButtonCell</string>
+			<key>label</key> 				<string>Report an Issue</string>
+			<key>action</key> 				<string>openGitHubIssues</string>
 		</dict>
 		
 		<!-- Respring -->
@@ -70,22 +129,19 @@
 			<key>cell</key> 				<string>PSGroupCell</string>
 		</dict>
 		<dict>
-			<key>cell</key>
-			<string>PSButtonCell</string>
-			<key>label</key>
-			<string>Apply Settings</string>
-			<key>action</key>
-			<string>respring</string>
-			<key>alignment</key>
-			<string>3</string>
+			<key>cell</key> 				<string>PSButtonCell</string>
+			<key>label</key> 				<string>Respring</string>
+			<key>action</key> 				<string>respring</string>
 		</dict>
 		
 		<!-- Credits -->
 		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
+			<key>cell</key> 				<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Created by @Sticktron
+			<string>Greets:
+@uroboro
+
+Created by @Sticktron
 
 (c) 2017
 

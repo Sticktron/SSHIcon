@@ -1,14 +1,15 @@
 ARCHS = armv7 arm64
-TARGET = iphone:clang:10.1:10.0
+TARGET = iphone:clang:10.1:9.3
 
 THEOS_BUILD_DIR = Build
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = SSHIcon
-
-SSHIcon_FILES = Tweak.xm
-SSHIcon_CFLAGS = -fobjc-arc
+TWEAK_NAME = SSHIconUI SSHIconSB
+SSHIconUI_FILES = SSHIconUI.xm
+SSHIconUI_CFLAGS = -fobjc-arc
+SSHIconSB_FILES = SSHIconSB.xm
+SSHIconSB_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

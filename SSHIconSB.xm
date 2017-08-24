@@ -1,15 +1,13 @@
 //
-//  SSH Icon
+//  SSH Icon (Server)
 //
 //  Copyright © 2017 Sticktron. All rights reserved.
 //
 
 #import "common.h"
-#import <Headers/LSStatusBarItem.h>
-#import <Headers/LSStatusBarClient.h>
+#import <libstatusbar/LSStatusBarItem.h>
 #import <dlfcn.h>
 #import <notify.h>
-
 #import <stdio.h>
 #import <fcntl.h>
 #import <utmpx.h>
@@ -25,41 +23,48 @@
 - (BOOL)_sshicon_isConnected;
 @end
 
+@interface SSHIconItem : LSStatusBarItem
+// @property (nonatomic, assign) BOOL updating;
+@end
+
 
 static LSStatusBarItem *sshIconItem;
 
 static BOOL enabled;
 static StatusBarAlignment alignment;
 static NSString *iconStyle;
+static float updateInterval;
 
 static NSTimer *updateTimer;
-static float updateInterval = 5.0f;
 
 
 static void loadSettings() {
 	HBLogDebug(@"loadSettings()");
 	
-	NSDictionary *settings = nil;
-	CFPreferencesAppSynchronize(kPrefsAppID);
-	CFArrayRef keyList = CFPreferencesCopyKeyList(kPrefsAppID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	if (!keyList) {
-		HBLogDebug(@"No keylist (no user settings or error.)");
-	} else {
-		settings = (NSDictionary *)CFBridgingRelease(CFPreferencesCopyMultiple(keyList, kPrefsAppID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost));
-		HBLogDebug(@"Got user settings: %@", ONE_LINER(settings));
-		CFRelease(keyList);
-	}
+	NSDictionary *settings = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefsPlistPath];
 	
 	// apply user settings or defaults
 	enabled = settings[@"Enabled"] ? [settings[@"Enabled"] boolValue] : YES;
 	alignment = (settings[@"Alignment"] && [settings[@"Alignment"] isEqualToString:@"Left"]) ? StatusBarAlignmentLeft : StatusBarAlignmentRight;
 	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"Boxed";
+	updateInterval = settings[@"UpdateInterval"] ? [settings[@"UpdateInterval"] floatValue] : 5.0f;
+	
+	HBLogDebug(@"got settings: Enabled=%d; Alignment=%u; IconStyle=%@; updateInterval=%f", enabled, alignment, iconStyle, updateInterval);
 }
 
-// static void handleSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
-// 	HBLogDebug(@"***** Got Notification: %@", name);
-// 	loadSettings();
-// }
+static void handleSettingsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
+	HBLogDebug(@"***** Got Notification: %@", name);
+	loadSettings();
+	
+	// force the UI to refresh so the new icon takes effect
+	sshIconItem.imageName = @"be kind!";
+	if (sshIconItem.visible) {
+		// reset the timer so the new interval takes effect
+		SpringBoard *sb = (SpringBoard *)[UIApplication sharedApplication];
+		[sb _sshicon_stopUpdating];
+		[sb _sshicon_startUpdating];
+	}
+}
 
 /*
  * Listen for "screen blanking" notifications (on/off).
@@ -87,19 +92,28 @@ void registerForScreenBlankingNotifications() {
 %hook SpringBoard
 
 // redundant
-// - (BOOL)application:(UIApplication *)application  didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-// 	%log;
-// 	BOOL r = %orig;
-//
-// 	// start updating
-// 	[self _sshicon_startUpdating];
-//
-// 	return r;
-// }
+- (BOOL)application:(UIApplication *)application  didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+	%log;
+	BOOL r = %orig;
+	
+	// start updating
+	[self _sshicon_startUpdating];
+	
+	return r;
+}
 
 %new
 - (void)_sshicon_startUpdating {
 	%log;
+	
+	if (updateTimer) {
+		HBLogDebug(@"already updating with timer: %@", updateTimer);
+		[self _sshicon_stopUpdating];
+	}
+	
+	// update before starting the timer
+	[self _sshicon_update];
+	
     updateTimer = [NSTimer timerWithTimeInterval:updateInterval target:self
 		selector:@selector(_sshicon_update)
 		userInfo:nil
@@ -111,6 +125,7 @@ void registerForScreenBlankingNotifications() {
 %new
 - (void)_sshicon_stopUpdating {
 	%log;
+	
     if (updateTimer) {
         [updateTimer invalidate];
         updateTimer = nil;
@@ -179,7 +194,7 @@ void registerForScreenBlankingNotifications() {
 
 %ctor {
 	@autoreleasepool {
-		NSLog(@"SSH Icon init.");
+		HBLogDebug(@"SSHIcon server init.");
 		
 		// quit if libstatusbar is not installed!
 		void *handle = dlopen("/Library/MobileSubstrate/DynamicLibraries/libstatusbar.dylib", RTLD_LAZY);
@@ -198,7 +213,7 @@ void registerForScreenBlankingNotifications() {
 		
 		// create statusbar item
 		sshIconItem = [[%c(LSStatusBarItem) alloc] initWithIdentifier:@"com.sticktron.sshicon" alignment:alignment];
-		sshIconItem.imageName = [NSString stringWithFormat:@"SSHIcon%@", iconStyle];
+		sshIconItem.customViewClass = @"SSHIconItemView";
 		sshIconItem.visible = NO;
 		HBLogDebug(@"StatusBar item created >> %@", sshIconItem);
 		
@@ -209,8 +224,8 @@ void registerForScreenBlankingNotifications() {
 		registerForScreenBlankingNotifications();
 
 		// listen for changes to settings
-		// CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL,
-		// 	handleSettingsChanged, CFSTR("com.sticktron.sshicon.settingschanged"),
-		// 	NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL,
+			handleSettingsChanged, kPrefsChangedNotification,
+			NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 	}
 }

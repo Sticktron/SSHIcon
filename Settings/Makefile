@@ -1,12 +1,11 @@
 ARCHS = armv7 arm64
-TARGET = iphone:clang:9.3:10.0
+TARGET = iphone:clang:10.1:9.0
 
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = SSHIconSettings
 SSHIconSettings_FILES = SSHIconSettingsController.m
 SSHIconSettings_INSTALL_PATH = /Library/PreferenceBundles
-SSHIconSettings_FRAMEWORKS = UIKit
 SSHIconSettings_PRIVATE_FRAMEWORKS = Preferences
 SSHIconSettings_CFLAGS = -fobjc-arc
 
