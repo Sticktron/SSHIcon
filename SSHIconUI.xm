@@ -5,9 +5,11 @@
 //
 
 #import "common.h"
+#import "SSHIconConnectionInfo.h"
 #import <libstatusbar/UIStatusBarCustomItemView.h>
 #import <UIKit/UIStatusBarForegroundStyleAttributes.h>
 #import <UIKit/_UILegibilityImageSet.h>
+#import <dlfcn.h>
 
 
 static NSString *iconStyle;
@@ -30,10 +32,6 @@ static void handleSettingsChanged(CFNotificationCenterRef center, void *observer
 	HBLogDebug(@"object = %@", object);
 	HBLogDebug(@"userInfo = %@", userInfo);
 	loadSettings();
-	
-	
-	
-	// [UIStatusBar ]
 }
 
 
@@ -51,7 +49,7 @@ static void handleSettingsChanged(CFNotificationCenterRef center, void *observer
 		self.userInteractionEnabled = YES;
 		
 		// add tap recognizer
-		UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]
+		UILongPressGestureRecognizer *tap = [[UILongPressGestureRecognizer alloc]
 			initWithTarget:self
 			action:@selector(handleTap:)];
 		tap.delegate = (id <UIGestureRecognizerDelegate>)self;
@@ -64,9 +62,26 @@ static void handleSettingsChanged(CFNotificationCenterRef center, void *observer
 - (void)handleTap:(UITapGestureRecognizer *)recognizer {
 	HBLogDebug(@"Tap gesture recognized");
 	
+	NSString *message;
+	
+	SSHIconConnectionInfo *connInfo = [SSHIconConnectionInfo sharedInstance];
+	[connInfo scan];
+	if ([connInfo connected]) {
+		message = [NSString stringWithFormat:@"\nOpen connection(s): %d\n\n", (int)[connInfo connections].count];
+		for (NSDictionary *dict in [connInfo connections]) {
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"host: %@\n", dict[@"host"]]];
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"login: %@\n", dict[@"login"]]];
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"line: %@\n", dict[@"line"]]];
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"pid: %@\n", dict[@"pid"]]];
+			message = [message stringByAppendingString:@"\n"];
+		}
+	} else {
+		message = @"No connections";
+	}
+	
 	UIAlertController *alert = [UIAlertController
 		alertControllerWithTitle:@"Remote Connections"
-		message:@"Coming soon...\n\nHost: < placeholder > \n\nUser: < placeholder > \n\nPID: < placeholder >\n\n"
+		message:message
 		preferredStyle:UIAlertControllerStyleAlert
 	];
 	

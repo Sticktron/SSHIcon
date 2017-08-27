@@ -6,9 +6,11 @@ THEOS_BUILD_DIR = Build
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = SSHIconUI SSHIconSB
-SSHIconUI_FILES = SSHIconUI.xm
+
+SSHIconUI_FILES = SSHIconUI.xm SSHIconConnectionInfo.m
 SSHIconUI_CFLAGS = -fobjc-arc
-SSHIconSB_FILES = SSHIconSB.xm
+
+SSHIconSB_FILES = SSHIconSB.xm SSHIconConnectionInfo.m
 SSHIconSB_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk

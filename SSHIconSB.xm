@@ -5,12 +5,10 @@
 //
 
 #import "common.h"
+#import "SSHIconConnectionInfo.h"
 #import <libstatusbar/LSStatusBarItem.h>
 #import <dlfcn.h>
 #import <notify.h>
-#import <stdio.h>
-#import <fcntl.h>
-#import <utmpx.h>
 
 
 @interface SpringBoard : UIApplication
@@ -149,43 +147,9 @@ void registerForScreenBlankingNotifications() {
 %new
 - (BOOL)_sshicon_isConnected {
 	%log;
-	
-	BOOL isConnected = NO;
-	
-	HBLogDebug(@"reading from utmpx:");
-	HBLogDebug(@"====================");
-	
-	struct utmpx *up;
-	
-	setutxent();
-	
-	up = getutxent();
-	while (up != NULL) {
-		HBLogDebug(@"read a line from utmpx file...");
-		HBLogDebug(@"--------------------");
-		HBLogDebug(@"login name: %s\n", up->ut_user);
-		HBLogDebug(@"id: %s\n", up->ut_id);
-		HBLogDebug(@"tty name: %s\n", up->ut_line);
-		HBLogDebug(@"pid: %d\n", (int)(up->ut_pid));
-		HBLogDebug(@"host name: %s\n", up->ut_host);
-		HBLogDebug(@"--------------------");
-		
-		// if (!strcmp(up->ut_host, "")) {
-		if (up->ut_host[0]) {
-			HBLogDebug(@"found a connected host: %s", up->ut_host);
-			isConnected = YES;
-			break;
-		}
-		
-		up = getutxent();
-	}
-	
-	endutxent();
-	
-	HBLogDebug(@"isConnected = %d", isConnected);
-	HBLogDebug(@"====================");
-	
-	return isConnected;
+	SSHIconConnectionInfo *connInfo = [SSHIconConnectionInfo sharedInstance];
+	[connInfo scan];
+	return [connInfo connected];
 }
 
 %end
