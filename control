@@ -25,3 +25,4 @@ Description: A statusbar icon for SSH connections.
 Maintainer: Sticktron
 Author: Sticktron <sticktron@hotmail.com>
 Section: Tweaks
+Icon: file:///Library/PreferenceBundles/SSHIconSettings.bundle/Icon.png
