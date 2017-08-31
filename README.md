@@ -8,11 +8,11 @@ An iOS statusbar indicator for remote connections (iOS 9-10)
 
 ## Compatibility
 
-- Supports iOS 9-10
+- Supports iOS 9/10
 - Requires a jailbroken iPhone, iPad or iPod Touch
 - Requires libstatusbar or equivalent
 
 ## Availability
-Public beta is available on my Cydia repo: https://repo.sticktron.net
+Get it for free on Cydia!
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/sticktron.svg?style=social&label=Follow)](http://twitter.com/sticktron)
