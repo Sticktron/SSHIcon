@@ -18,11 +18,10 @@
 - (void)_sshicon_startUpdating;
 - (void)_sshicon_stopUpdating;
 - (void)_sshicon_update;
-- (BOOL)_sshicon_isConnected;
 @end
 
+
 @interface SSHIconItem : LSStatusBarItem
-// @property (nonatomic, assign) BOOL updating;
 @end
 
 
@@ -135,21 +134,7 @@ void registerForScreenBlankingNotifications() {
 
 %new
 - (void)_sshicon_update {
-	%log;
-	
-	if ([self _sshicon_isConnected]) {
-		sshIconItem.visible = YES;
-	} else {
-		sshIconItem.visible = NO;
-	}
-}
-
-%new
-- (BOOL)_sshicon_isConnected {
-	%log;
-	SSHIconConnectionInfo *connInfo = [SSHIconConnectionInfo sharedInstance];
-	[connInfo scan];
-	return [connInfo connected];
+	sshIconItem.visible = [[SSHIconConnectionInfo sharedInstance] isConnected];
 }
 
 %end
