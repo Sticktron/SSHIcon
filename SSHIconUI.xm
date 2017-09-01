@@ -21,7 +21,9 @@ static void loadSettings() {
 	NSDictionary *settings = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefsPlistPath];
 	
 	// apply user settings or defaults
-	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"Boxed";
+	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"SSH (Rounded)";
+
+	// @"Boxed"; // Folder does not Exist
 	
 	HBLogDebug(@"got settings: Enabled=1; IconStyle=%@;", iconStyle);
 }
