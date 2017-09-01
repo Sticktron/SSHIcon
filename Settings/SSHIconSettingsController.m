@@ -7,10 +7,11 @@
 #import <Preferences/PSListController.h>
 #import <Preferences/PSSpecifier.h>
 #import <spawn.h>
+#import <version.h>
 
 
 static NSString *const kPrefsPlistPath = @"/var/mobile/Library/Preferences/com.sticktron.sshicon.plist";
-static NSString *const kIconStylesPath = @"/Library/SSHIcon";
+static NSString *const kIconStylesPath = @"/Library/SSHIcon/";
 static int const kIconPreviewSection = 3;
 static float const kIconPreviewCellHeight = 30;
 
@@ -19,17 +20,11 @@ static float const kIconPreviewCellHeight = 30;
 @property (nonatomic, strong) UIView *iconPreviewView;
 @property (nonatomic, strong) NSArray *iconStyles;
 - (void)updateStyleList;
+- (NSArray *)iconStyleNames;
 @end
 
 
 @implementation SSHIconSettingsController
-
-- (void)viewWillAppear:(BOOL)animated {
-	HBLogDebug(@"viewWillAppear()");
-	[super viewWillAppear:animated];
-	[self updateStyleList];
-	[self reloadSpecifiers];
-}
 
 - (NSArray *)specifiers {
 	if (!_specifiers) {
@@ -40,22 +35,31 @@ static float const kIconPreviewCellHeight = 30;
 
 /* Load icon style names from /Library/SSHIcon/ */
 - (void)updateStyleList {
-	NSMutableArray *styles = [NSMutableArray array];
-	NSMutableArray *folders = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:kIconStylesPath error:nil] mutableCopy];
+	self.iconStyles = nil;
+	
+	NSArray *folders = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:kIconStylesPath error:nil];
 	HBLogDebug(@"folders = %@", folders);
 	
-	for (int i = 0; i < folders.count; i++) {
-		NSString *folder = folders[i];
-		HBLogDebug(@"folder = %@", folder);
-		if (folder) {
-			[styles addObject:folder];
+	if (folders.count > 0) {
+		NSMutableArray *styles = [NSMutableArray array];
+		
+		for (int i = 0; i < folders.count; i++) {
+			NSString *folder = folders[i];
+			if (folder) {
+				[styles addObject:folder];
+			}
 		}
+		NSArray *sortedStyles = [styles sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+		self.iconStyles = sortedStyles;
 	}
-	HBLogDebug(@"styles = %@", styles);
-	
-	if (styles) {
-		self.iconStyles = [NSArray arrayWithArray:[styles sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)]];
+}
+
+/* Data source for icon style specifier */
+- (NSArray *)iconStyleNames {
+	if (!self.iconStyles) {
+		[self updateStyleList];
 	}
+	return self.iconStyles;
 }
 
 /* Manually keep the plist up to date because the tweak runs in sandboxed apps */
@@ -80,6 +84,11 @@ static float const kIconPreviewCellHeight = 30;
 
 /* Restart SpringBoard after alerting user */
 - (void)respring {
+	if (!IS_IOS_OR_NEWER(iOS_8_0)) {
+		[self respring7];
+		return;
+	}
+	
 	UIAlertController *alert = [UIAlertController
 		alertControllerWithTitle:@"Respring"
 		message:@"Restart SpringBoard now?"
@@ -89,16 +98,19 @@ static float const kIconPreviewCellHeight = 30;
 		actionWithTitle:@"OK"
 		style:UIAlertActionStyleDefault
 		handler:^(UIAlertAction *action) {
-			// respring!
 			[self respringNow];
 		}];
-	[alert addAction:defaultAction];
+	
 	UIAlertAction *cancelAction = [UIAlertAction
 		actionWithTitle:@"Cancel"
 		style:UIAlertActionStyleCancel
 		handler:nil];
+	
+	[alert addAction:defaultAction];
 	[alert addAction:cancelAction];
+	
 	[self presentViewController:alert animated:YES completion:nil];
+	
 }
 - (void)respringNow {
 	NSLog(@"SSHIcon: User requested a respring.");
@@ -106,74 +118,23 @@ static float const kIconPreviewCellHeight = 30;
 	const char* args[] = { "killall", "-HUP", "SpringBoard", NULL };
 	posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 }
+/* iOS < 8 */
+- (void)respring7 {
+	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Respring"
+													message:@"Restart SpringBoard now?"
+												   delegate:self
+										  cancelButtonTitle:@"Cancel"
+										  otherButtonTitles:@"OK", nil];
+	
+	[alert show];
+}
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(int)buttonIndex {
+	if (buttonIndex == 1) { // YES
+		[self respringNow];
+	}
+}
 
 /* Show preview of icon styles */
-/*
-- (id)tableView:(id)tableView viewForFooterInSection:(NSInteger)section {
-	HBLogDebug(@"viewForFooterInSection:%ld", (long)section);
-	
-	if (section != kIconPreviewSection) {
-		return [super tableView:tableView viewForFooterInSection:section];
-	}
-	
-	// if (!self.iconPreviewView) {
-		HBLogDebug(@"creating iconPreviewView...");
-		
-		UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, kIconPreviewCellHeight)];
-		HBLogDebug(@"headerView = %@", headerView);
-		headerView.backgroundColor = UIColor.whiteColor;
-		headerView.opaque = YES;
-		headerView.autoresizesSubviews = YES;
-		
-		[self updateStyleList];
-		HBLogDebug(@"styles = %@", self.iconStyles);
-		
-		float w = floor(headerView.bounds.size.width / (float)(self.iconStyles.count));
-		CGRect frame = CGRectMake(0, 0, w, headerView.bounds.size.height);
-		
-		for (int i = 0; i < self.iconStyles.count; i++) {
-			NSString *style = self.iconStyles[i];
-			HBLogDebug(@"loading preview image for icon: %@", style);
-			
-			NSString *path = [NSString stringWithFormat:@"%@/%@/%@", kIconStylesPath, style, @"Icon_Color_20"];
-			UIImage *image = [UIImage imageWithContentsOfFile:path];
-			if (!image) {
-				NSString *path = [NSString stringWithFormat:@"%@/%@/%@", kIconStylesPath, style, @"Icon_20"];
-				image = [[UIImage alloc] initWithContentsOfFile:path];
-			}
-			
-			HBLogDebug(@" = %@", image);
-			
-			frame.origin.x = floor(w * (float)i);
-			
-			UIImageView *imageView = [[UIImageView alloc] initWithFrame:frame];
-			imageView.image = image;
-			imageView.contentMode = UIViewContentModeCenter;
-			
-			// tint bg if selected
-			NSString *currentStyle = [self readPreferenceValue:[self specifierForID:@"IconStyle"]];
-			if ([style isEqualToString:currentStyle]) {
-				// imageView.backgroundColor = self.view.tintColor;
-				imageView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
-			}
-			
-			[headerView addSubview:imageView];
-		// }
-		
-		// self.iconPreviewView = headerView;
-	}
-	
-	// return self.iconPreviewView;
-	return headerView;
-}
-- (CGFloat)tableView:(id)tableView heightForFooterInSection:(NSInteger)section {
-	if (section == kIconPreviewSection) {
-		return kIconPreviewCellHeight;
-	} else {
-		return [super tableView:tableView heightForFooterInSection:section];
-	}
-}
-*/
 - (id)tableView:(id)tableView viewForHeaderInSection:(NSInteger)section {
 	HBLogDebug(@"viewForHeaderInSection:%ld", (long)section);
 	
@@ -181,54 +142,47 @@ static float const kIconPreviewCellHeight = 30;
 		return [super tableView:tableView viewForHeaderInSection:section];
 	}
 	
-	// if (!self.iconPreviewView) {
-		HBLogDebug(@"creating iconPreviewView...");
+	UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, kIconPreviewCellHeight)];
+	HBLogDebug(@"headerView = %@", headerView);
+	headerView.backgroundColor = UIColor.whiteColor;
+	headerView.opaque = YES;
+	headerView.autoresizesSubviews = YES;
+	
+	[self updateStyleList];
+	HBLogDebug(@"styles = %@", self.iconStyles);
+	
+	float w = floor(headerView.bounds.size.width / (float)(self.iconStyles.count));
+	CGRect frame = CGRectMake(0, 0, w, headerView.bounds.size.height);
+	
+	for (int i = 0; i < self.iconStyles.count; i++) {
+		NSString *style = self.iconStyles[i];
+		HBLogDebug(@"loading preview image for icon: %@", style);
 		
-		UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, kIconPreviewCellHeight)];
-		HBLogDebug(@"headerView = %@", headerView);
-		headerView.backgroundColor = UIColor.whiteColor;
-		headerView.opaque = YES;
-		headerView.autoresizesSubviews = YES;
+		NSString *path = [NSString stringWithFormat:@"%@/%@/%@.png", kIconStylesPath, style, @"Icon_Color_20"];
+		UIImage *image = [UIImage imageWithContentsOfFile:path];
+		if (!image) {
+			NSString *path = [NSString stringWithFormat:@"%@/%@/%@.png", kIconStylesPath, style, @"Icon_20"];
+			image = [[UIImage alloc] initWithContentsOfFile:path];
+		}
 		
-		[self updateStyleList];
-		HBLogDebug(@"styles = %@", self.iconStyles);
+		HBLogDebug(@" = %@", image);
 		
-		float w = floor(headerView.bounds.size.width / (float)(self.iconStyles.count));
-		CGRect frame = CGRectMake(0, 0, w, headerView.bounds.size.height);
+		frame.origin.x = floor(w * (float)i);
 		
-		for (int i = 0; i < self.iconStyles.count; i++) {
-			NSString *style = self.iconStyles[i];
-			HBLogDebug(@"loading preview image for icon: %@", style);
-			
-			NSString *path = [NSString stringWithFormat:@"%@/%@/%@", kIconStylesPath, style, @"Icon_Color_20"];
-			UIImage *image = [UIImage imageWithContentsOfFile:path];
-			if (!image) {
-				NSString *path = [NSString stringWithFormat:@"%@/%@/%@", kIconStylesPath, style, @"Icon_20"];
-				image = [[UIImage alloc] initWithContentsOfFile:path];
-			}
-			
-			HBLogDebug(@" = %@", image);
-			
-			frame.origin.x = floor(w * (float)i);
-			
-			UIImageView *imageView = [[UIImageView alloc] initWithFrame:frame];
-			imageView.image = image;
-			imageView.contentMode = UIViewContentModeCenter;
-			
-			// tint bg if selected
-			NSString *currentStyle = [self readPreferenceValue:[self specifierForID:@"IconStyle"]];
-			if ([style isEqualToString:currentStyle]) {
-				// imageView.backgroundColor = self.view.tintColor;
-				imageView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
-			}
-			
-			[headerView addSubview:imageView];
-		// }
+		UIImageView *imageView = [[UIImageView alloc] initWithFrame:frame];
+		imageView.image = image;
+		imageView.contentMode = UIViewContentModeCenter;
 		
-		// self.iconPreviewView = headerView;
+		// tint bg if selected
+		NSString *currentStyle = [self readPreferenceValue:[self specifierForID:@"IconStyle"]];
+		if ([style isEqualToString:currentStyle]) {
+			imageView.layer.borderWidth = 1;
+			imageView.layer.borderColor = [self.view.tintColor CGColor];
+		}
+		
+		[headerView addSubview:imageView];
 	}
 	
-	// return self.iconPreviewView;
 	return headerView;
 }
 - (CGFloat)tableView:(id)tableView heightForHeaderInSection:(NSInteger)section {
@@ -237,13 +191,6 @@ static float const kIconPreviewCellHeight = 30;
 	} else {
 		return [super tableView:tableView heightForHeaderInSection:section];
 	}
-}
-
-
-
-
-- (NSArray *)iconStyleNames:(id)target {
-	return self.iconStyles;
 }
 
 - (void)openGitHubIssues {

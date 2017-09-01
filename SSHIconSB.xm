@@ -43,7 +43,7 @@ static void loadSettings() {
 	// apply user settings or defaults
 	enabled = settings[@"Enabled"] ? [settings[@"Enabled"] boolValue] : YES;
 	alignment = (settings[@"Alignment"] && [settings[@"Alignment"] isEqualToString:@"Left"]) ? StatusBarAlignmentLeft : StatusBarAlignmentRight;
-	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"Boxed";
+	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"SSH";
 	updateInterval = settings[@"UpdateInterval"] ? [settings[@"UpdateInterval"] floatValue] : 5.0f;
 	
 	HBLogDebug(@"got settings: Enabled=%d; Alignment=%u; IconStyle=%@; updateInterval=%f", enabled, alignment, iconStyle, updateInterval);

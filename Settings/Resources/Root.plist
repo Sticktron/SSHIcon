@@ -46,12 +46,15 @@
 			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
 		</dict>
 		
-		<!-- IconStyle -->
+		<!-- Spacer -->
 		<dict>
 			<key>cell</key> 				<string>PSGroupCell</string>
 		</dict>
+		
+		<!-- IconStyle -->
 		<dict>
 			<key>cell</key> 				<string>PSGroupCell</string>
+			<key>id</key> 					<string>IconStyleGroup</string>
 		</dict>
 		<dict>
 			<key>cell</key> 				<string>PSLinkListCell</string>
@@ -59,26 +62,9 @@
 			<key>label</key> 				<string>Icon Style</string>
 			<key>key</key> 					<string>IconStyle</string>
 			<key>id</key> 					<string>IconStyle</string>
-			<key>titlesDataSource</key> 	<string>iconStyleNames:</string>
-			<key>valuesDataSource</key> 	<string>iconStyleNames:</string>
-			
-			<!-- <key>validTitles</key>
-			<array>
-				<string>Boxed</string>
-				<string>Colored</string>
-				<string>Outlined</string>
-				<string>PuTTY</string>
-				<string>Mac</string>
-			</array>
-			<key>validValues</key>
-			<array>
-				<string>Boxed</string>
-				<string>Colored</string>
-				<string>Outlined</string>
-				<string>PuTTY</string>
-				<string>Mac</string>
-			</array> -->
-			<key>default</key> 				<string>Boxed</string>
+			<key>titlesDataSource</key> 	<string>iconStyleNames</string>
+			<key>valuesDataSource</key> 	<string>iconStyleNames</string>
+			<key>default</key> 				<string>SSH</string>
 			<key>defaults</key> 			<string>com.sticktron.sshicon</string>
 			<key>PostNotification</key> 	<string>com.sticktron.sshicon.settingschanged</string>
 		</dict>

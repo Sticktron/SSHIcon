@@ -1,5 +1,5 @@
 ARCHS = armv7 arm64
-TARGET = iphone:clang:10.1:9.3
+TARGET = iphone:clang:10.1:7
 
 THEOS_BUILD_DIR = Build
 
@@ -19,4 +19,4 @@ SUBPROJECTS += Settings
 include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-install::
-	install.exec "killall -9 SpringBoard"
+	install.exec "killall -9 backboardd"
