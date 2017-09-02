@@ -10,6 +10,7 @@
 #import <UIKit/UIStatusBarForegroundStyleAttributes.h>
 #import <UIKit/_UILegibilityImageSet.h>
 #import <dlfcn.h>
+#import <version.h>
 
 
 static NSString *iconStyle;
@@ -21,9 +22,13 @@ static void loadSettings() {
 	NSDictionary *settings = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefsPlistPath];
 	
 	// apply user settings or defaults
+<<<<<<< HEAD
 	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"SSH (Rounded)";
 
 	// @"Boxed"; // Folder does not Exist
+=======
+	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"SSH";
+>>>>>>> Sticktron/master
 	
 	HBLogDebug(@"got settings: Enabled=1; IconStyle=%@;", iconStyle);
 }
@@ -38,9 +43,9 @@ static void handleSettingsChanged(CFNotificationCenterRef center, void *observer
 
 
 @interface SSHIconItemView : UIStatusBarCustomItemView
-@property (nonatomic, assign) UIColor *glyphColor;
-- (void)handleTap:(UITapGestureRecognizer *)recognizer;
+@property (nonatomic, retain) UIColor *glyphColor;
 - (void)showPopup;
+- (void)handleGesture:(UITapGestureRecognizer *)recognizer;
 @end
 
 
@@ -52,10 +57,25 @@ static void handleSettingsChanged(CFNotificationCenterRef center, void *observer
 	if ((self = %orig)) {
 		self.userInteractionEnabled = YES;
 		
+		// add sideways swipe recognizer
+		// UISwipeGestureRecognizer *swipe = [[UISwipeGestureRecognizer alloc]
+		// 	initWithTarget:self
+		// 	action:@selector(handleGesture:)];
+		// swipe.delegate = (id <UIGestureRecognizerDelegate>)self;
+		// swipe.direction = UISwipeGestureRecognizerDirectionRight|UISwipeGestureRecognizerDirectionLeft;
+		// [self addGestureRecognizer:swipe];
+		
+		// add long press recongizer
+		// UILongPressGestureRecognizer *press = [[UILongPressGestureRecognizer alloc]
+		// 	initWithTarget:self
+		// 	action:@selector(handleGesture:)];
+		// press.delegate = (id <UIGestureRecognizerDelegate>)self;
+		// [self addGestureRecognizer:press];
+		
 		// add tap recognizer
-		UILongPressGestureRecognizer *tap = [[UILongPressGestureRecognizer alloc]
+		UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]
 			initWithTarget:self
-			action:@selector(handleTap:)];
+			action:@selector(handleGesture:)];
 		tap.delegate = (id <UIGestureRecognizerDelegate>)self;
 		[self addGestureRecognizer:tap];
 	}
@@ -71,17 +91,23 @@ static void handleSettingsChanged(CFNotificationCenterRef center, void *observer
 	
 	int size = self.bounds.size.height == 24 ? 24 : 20;
 	
-	NSString *path = [NSString stringWithFormat:@"%@/%@/Icon_Color_%d", kIconStylesPath, iconStyle, size];
+	// look for colored icon image first
+	NSString *path = [NSString stringWithFormat:@"%@/%@/Icon_Color_%d.png", kIconStylesPath, iconStyle, size];
 	UIImage *image = [[UIImage alloc] initWithContentsOfFile:path];
+	
 	if (!image) {
-		NSString *path = [NSString stringWithFormat:@"%@/%@/Icon_%d", kIconStylesPath, iconStyle, size];
+		// look for glyph icon image
+		NSString *path = [NSString stringWithFormat:@"%@/%@/Icon_%d.png", kIconStylesPath, iconStyle, size];
 		image = [[UIImage alloc] initWithContentsOfFile:path];
+		
+		// tint glyph to match statusbar style
 		UIColor *color = [[self foregroundStyle] tintColor];
 		image = [image _flatImageWithColor:color];
 	}
-	HBLogDebug (@"image = %@", image);
 	
-	return [_UILegibilityImageSet imageFromImage:image withShadowImage:nil];
+	_UILegibilityImageSet *imageSet = [_UILegibilityImageSet imageFromImage:image withShadowImage:nil];
+	
+	return imageSet;
 }
 
 - (void)updateContentsAndWidth {
@@ -94,52 +120,85 @@ static void handleSettingsChanged(CFNotificationCenterRef center, void *observer
 	// Check for connections
 	NSArray *connections = [[SSHIconConnectionInfo sharedInstance] connections];
 	int num = connections.count;
+	NSString *title = [NSString stringWithFormat:@"SSH Connection(s): %d", num];
 	
-	// I'll use a UIAlertController for this (not the prettiest, but functional.)
-	UIAlertController *alert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"SSH Connection(s): %d", num]
-		message:@"No connections."
-		preferredStyle:UIAlertControllerStyleAlert];
-		
-	[alert addAction:[UIAlertAction
-		actionWithTitle:@"Done"
-		style:UIAlertActionStyleCancel
-	    handler:^(UIAlertAction *action) {}]];
+	BOOL isAtLeast8 = IS_IOS_OR_NEWER(iOS_8_0);
 	
 	// Build a list of connections
-	if (num > 0) {
-		NSString *message = @"\n";
-		for (NSDictionary *dict in connections) {
-			message = [message stringByAppendingString:[NSString stringWithFormat:@"IP: \t\t%@\n", dict[@"host"]]];
-			if (dict[@"login"]) message = [message stringByAppendingString:[NSString stringWithFormat:@"User: \t%@\n", dict[@"login"]]];
-			if (dict[@"pid"]) message = [message stringByAppendingString:[NSString stringWithFormat:@"PID: \t\t%@\n", dict[@"pid"]]];
-			// if (dict[@"line"]) message = [message stringByAppendingString:[NSString stringWithFormat:@"Line: \t%@\n", dict[@"line"]]];
-			if (dict[@"type"]) message = [message stringByAppendingString:[NSString stringWithFormat:@"Type: \t%@\n", dict[@"type"]]];
-			if (dict[@"timeval"]) message = [message stringByAppendingString:[NSString stringWithFormat:@"Time: \t%@", dict[@"timeval"]]];
-			message = [message stringByAppendingString:@"\n"];
+	NSString *message = @"\n";
+	for (NSDictionary *dict in connections) {
+		
+		message = [message stringByAppendingString:@"IP: "];
+		if (isAtLeast8) message = [message stringByAppendingString:@"\t\t"];
+		message = [message stringByAppendingString:[NSString stringWithFormat:@"%@\n", dict[@"host"]]];
+		
+		if (dict[@"login"]) {
+			message = [message stringByAppendingString:@"User: "];
+			if (isAtLeast8) message = [message stringByAppendingString:@"\t"];
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"%@\n", dict[@"login"]]];
 		}
 		
+		if (dict[@"pid"])  {
+			message = [message stringByAppendingString:@"PID: "];
+			if (isAtLeast8) message = [message stringByAppendingString:@"\t"];
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"%@\n", dict[@"pid"]]];
+		}
+		
+		// if (dict[@"line"]) message = [message stringByAppendingString:[NSString stringWithFormat:@"Line: %@\n", dict[@"line"]]];
+		
+		if (dict[@"type"]) {
+			message = [message stringByAppendingString:@"Type: "];
+			if (isAtLeast8) message = [message stringByAppendingString:@"\t"];
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"%@\n", dict[@"type"]]];
+		}
+		
+		if (dict[@"timeval"]) {
+			message = [message stringByAppendingString:@"Time: "];
+			if (isAtLeast8) message = [message stringByAppendingString:@"\t"];
+			message = [message stringByAppendingString:[NSString stringWithFormat:@"%@", dict[@"timeval"]]];
+		}
+		
+		message = [message stringByAppendingString:@"\n"];
+	}
+	
+	// Show the alert
+	if (isAtLeast8) { //  use UIAlertController
+		UIAlertController *alert = [%c(UIAlertController) alertControllerWithTitle:title
+			message:nil
+			preferredStyle:UIAlertControllerStyleAlert];
+		
+		[alert addAction:[%c(UIAlertAction)
+			actionWithTitle:@"Done"
+			style:UIAlertActionStyleCancel
+		    handler:^(UIAlertAction *action) {
+			}]];
+			
+		// Format message text
 		NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
 		[paragraphStyle setAlignment:NSTextAlignmentLeft];
-		// [paragraphStyle setLineSpacing:4];
 		
-		NSMutableAttributedString *formattedMessage = [[NSMutableAttributedString alloc]
+		NSAttributedString *formattedMessage = [[NSAttributedString alloc]
 			initWithString:message
 			attributes: @{
 				NSParagraphStyleAttributeName: paragraphStyle,
 				NSFontAttributeName : [UIFont systemFontOfSize:12],
-				// NSForegroundColorAttributeName : [UIColor colorWithWhite:0.2 alpha:1]
-			}
-		];
+			}];
 		
-		// Set the alert body
 		[alert setValue:formattedMessage forKey:@"attributedMessage"];
+				
+		[[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert animated:YES completion:nil];
+		
+	} else { // use UIAlertView for iOS <= 7
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+														message:message
+													   delegate:self
+											  cancelButtonTitle:@"Done"
+											  otherButtonTitles:nil];
+		[alert show];
 	}
-	
-	// Show the alert
-	[[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alert animated:YES completion:nil];
 }
 
-%new - (void)handleTap:(UITapGestureRecognizer *)recognizer {
+%new - (void)handleGesture:(UITapGestureRecognizer *)recognizer {
 	[self showPopup];
 }
 
