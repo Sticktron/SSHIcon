@@ -22,7 +22,13 @@ static void loadSettings() {
 	NSDictionary *settings = [NSMutableDictionary dictionaryWithContentsOfFile:kPrefsPlistPath];
 	
 	// apply user settings or defaults
+<<<<<<< HEAD
+	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"SSH (Rounded)";
+
+	// @"Boxed"; // Folder does not Exist
+=======
 	iconStyle = settings[@"IconStyle"] ? settings[@"IconStyle"] : @"SSH";
+>>>>>>> Sticktron/master
 	
 	HBLogDebug(@"got settings: Enabled=1; IconStyle=%@;", iconStyle);
 }
