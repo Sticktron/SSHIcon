@@ -3,10 +3,11 @@ TARGET = iphone:clang:10.1:9.3
 
 
 #export THEOS_DEVICE_IP = i4s
-#export THEOS_DEVICE_IP = ip4s
+export THEOS_DEVICE_IP = ip4s
+#export THEOS_DEVICE_IP = ip4
 #export THEOS_DEVICE_IP = ipad
 #export THEOS_DEVICE_IP = ip6
-export THEOS_DEVICE_IP = ip7
+#export THEOS_DEVICE_IP = ip7
 #export THEOS_DEVICE_IP = ip5s
 #export THEOS_DEVICE_IP = ip5
 

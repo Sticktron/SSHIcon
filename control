@@ -1,8 +1,8 @@
 Package: com.sticktron.sshicon
 Name: SSH Status Bar Icon
-Pre-depends: firmware (>= 9.0)
+Pre-depends: firmware (>= 8.4)
 Depends: mobilesubstrate, preferenceloader, firmware (<< 9.1) | org.thebigboss.libstatus9, firmware (>= 9.0) | libstatusbar
-Version: 1.0-1
+Version: 1.0-2
 Architecture: iphoneos-arm
 Description: An iOS status bar indicator for SSH connections.
 Maintainer: Sticktron
